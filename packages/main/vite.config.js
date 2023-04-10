@@ -1,6 +1,7 @@
 import {node} from '../../.electron-vendors.cache.json';
 import {join} from 'node:path';
 import {injectAppVersion} from '../../version/inject-app-version-plugin.mjs';
+import {nativeNodeModulesPlugin} from '../renderer/utils/nativeNodeModulesPlugin';
 
 const PACKAGE_ROOT = __dirname;
 const PROJECT_ROOT = join(PACKAGE_ROOT, '../..');
@@ -10,15 +11,14 @@ const PROJECT_ROOT = join(PACKAGE_ROOT, '../..');
  * @see https://vitejs.dev/config/
  */
 const config = {
-  mode: process.env.MODE,
-  root: PACKAGE_ROOT,
-  envDir: PROJECT_ROOT,
-  resolve: {
+  mode: process.env.MODE, root: PACKAGE_ROOT, envDir: PROJECT_ROOT, resolve: {
     alias: {
       '/@/': join(PACKAGE_ROOT, 'src') + '/',
     },
   },
-  build: {
+  optimizeDeps: {
+    exclude: ['robotjs'],
+  }, build: {
     ssr: true,
     sourcemap: 'inline',
     target: `node${node}`,
@@ -26,8 +26,7 @@ const config = {
     assetsDir: '.',
     minify: process.env.MODE !== 'development',
     lib: {
-      entry: 'src/index.ts',
-      formats: ['cjs'],
+      entry: 'src/index.ts', formats: ['cjs'],
     },
     rollupOptions: {
       output: {
@@ -37,7 +36,10 @@ const config = {
     emptyOutDir: true,
     reportCompressedSize: false,
   },
-  plugins: [injectAppVersion()],
+  plugins: [
+    injectAppVersion(),
+    nativeNodeModulesPlugin(),
+  ],
 };
 
 export default config;

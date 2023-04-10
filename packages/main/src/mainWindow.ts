@@ -4,9 +4,12 @@ import {URL} from 'node:url';
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
+    title: 'ClipAsync',
+    width: 640,
+    height: 550,
     show: false, // Use the 'ready-to-show' event to show the instantiated BrowserWindow.
     webPreferences: {
-      nodeIntegration: false,
+      nodeIntegration: true,
       contextIsolation: true,
       sandbox: false, // Sandbox disabled because the demo of preload script depend on the Node.js api
       webviewTag: false, // The webview tag is not recommended. Consider alternatives like an iframe or Electron's BrowserView. @see https://www.electronjs.org/docs/latest/api/webview-tag#warning
@@ -48,7 +51,7 @@ async function createWindow() {
 /**
  * Restore an existing BrowserWindow or Create a new BrowserWindow.
  */
-export async function restoreOrCreateWindow() {
+export async function restoreOrCreateWindow(): Promise<Electron.BrowserWindow> {
   let window = BrowserWindow.getAllWindows().find(w => !w.isDestroyed());
 
   if (window === undefined) {
@@ -60,4 +63,5 @@ export async function restoreOrCreateWindow() {
   }
 
   window.focus();
+  return window;
 }

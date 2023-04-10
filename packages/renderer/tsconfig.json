@@ -21,7 +21,8 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "types/**/*.d.ts",
-    "../../types/**/*.d.ts"
+    "../../types/**/*.d.ts",
+    "../../node_modules/.pnpm/registry.npmmirror.com+electron@23.2.1/node_modules/electron/electron.d.ts"
   ],
   "exclude": ["**/*.spec.ts", "**/*.test.ts"]
 }

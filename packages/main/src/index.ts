@@ -1,8 +1,9 @@
-import {app} from 'electron';
+import {app, globalShortcut, ipcMain} from 'electron';
 import './security-restrictions';
 import {restoreOrCreateWindow} from '/@/mainWindow';
 import {platform} from 'node:process';
-
+import {getClipboardContent, writeToClipboard} from '/@/clipboard';
+import * as robot from 'robotjs';
 /**
  * Prevent electron from running multiple instances.
  */
@@ -37,30 +38,61 @@ app.on('activate', restoreOrCreateWindow);
  */
 app
   .whenReady()
-  .then(restoreOrCreateWindow)
+  .then(async () => {
+    const win = await restoreOrCreateWindow();
+    const ret = globalShortcut.register('CommandOrControl+B', async () => {
+      const platform = process.platform;
+      if (platform === 'darwin') {
+        robot.keyTap('c', 'command');
+      } else {
+        robot.keyTap('c', 'control');
+      }
+
+      setTimeout(async () => {
+        const content = await getClipboardContent();
+        // 发送到渲染进程
+        win.webContents.send('clipboard', content);
+      }, 500);
+    });
+    if (!ret) {
+      console.log('registration failed');
+    }
+  })
   .catch(e => console.error('Failed create window:', e));
+
+// 接收渲染进程的消息
+ipcMain.on('set-clipboard', (event, data) => {
+  writeToClipboard(data);
+});
+app.on('will-quit', () => {
+  // 注销快捷键
+  globalShortcut.unregister('CommandOrControl+B');
+
+  // 注销所有快捷键
+  globalShortcut.unregisterAll();
+});
 
 /**
  * Install Vue.js or any other extension in development mode only.
  * Note: You must install `electron-devtools-installer` manually
  */
-// if (import.meta.env.DEV) {
-//   app
-//     .whenReady()
-//     .then(() => import('electron-devtools-installer'))
-//     .then(module => {
-//       const {default: installExtension, VUEJS3_DEVTOOLS} =
-//         // @ts-expect-error Hotfix for https://github.com/cawa-93/vite-electron-builder/issues/915
-//         typeof module.default === 'function' ? module : (module.default as typeof module);
-//
-//       return installExtension(VUEJS3_DEVTOOLS, {
-//         loadExtensionOptions: {
-//           allowFileAccess: true,
-//         },
-//       });
-//     })
-//     .catch(e => console.error('Failed install extension:', e));
-// }
+if (import.meta.env.DEV) {
+  app
+    .whenReady()
+    .then(() => import('electron-devtools-installer'))
+    .then(module => {
+      const {default: installExtension, VUEJS3_DEVTOOLS} =
+        // @ts-expect-error Hotfix for https://github.com/cawa-93/vite-electron-builder/issues/915
+        typeof module.default === 'function' ? module : (module.default as typeof module);
+
+      return installExtension(VUEJS3_DEVTOOLS, {
+        loadExtensionOptions: {
+          allowFileAccess: true,
+        },
+      });
+    })
+    .catch(e => console.error('Failed install extension:', e));
+}
 
 /**
  * Check for app updates, install it in background and notify user that new version was installed.
