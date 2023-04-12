@@ -5,8 +5,9 @@ import {URL} from 'node:url';
 async function createWindow() {
   const browserWindow = new BrowserWindow({
     title: 'ClipAsync',
-    width: 640,
-    height: 550,
+    width: 440,
+    height: 650,
+    resizable: import.meta.env.DEV,
     show: false, // Use the 'ready-to-show' event to show the instantiated BrowserWindow.
     webPreferences: {
       nodeIntegration: true,

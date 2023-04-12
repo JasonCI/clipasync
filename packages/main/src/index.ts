@@ -1,9 +1,18 @@
 import {app, globalShortcut, ipcMain} from 'electron';
 import './security-restrictions';
-import {restoreOrCreateWindow} from '/@/mainWindow';
 import {platform} from 'node:process';
-import {getClipboardContent, writeToClipboard} from '/@/clipboard';
 import * as robot from 'robotjs';
+import {restoreOrCreateWindow} from '/@/common/mainWindow';
+import {getClipboardContent, writeToClipboard} from '/@/common/clipboard';
+// const Store = require('electron-store');
+//
+// const store = new Store({
+//   name: 'userInfo',//文件名称,默认 config
+//   fileExtension: 'json',//文件后缀,默认json
+//   cwd: app.getPath('userData'),//文件位置,尽量不要动
+//   //    encryptionKey:"aes-256-cbc" ,//对配置文件进行加密
+//   clearInvalidConfig: true, // 发生 SyntaxError  则清空配置,
+// });
 /**
  * Prevent electron from running multiple instances.
  */
@@ -63,6 +72,12 @@ app
 // 接收渲染进程的消息
 ipcMain.on('set-clipboard', (event, data) => {
   writeToClipboard(data);
+});
+ipcMain.on('electron-store-get', async (event, val) => {
+  // event.returnValue = '1'||store.get(val);
+});
+ipcMain.on('electron-store-set', async (event, key, val) => {
+  // store.set(key, val);
 });
 app.on('will-quit', () => {
   // 注销快捷键

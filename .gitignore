@@ -58,3 +58,5 @@ thumbs.db
 .idea/httpRequests
 /.idea/csv-plugin.xml
 .github
+/.github/
+/.idea/

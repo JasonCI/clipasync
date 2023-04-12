@@ -1,5 +1,8 @@
-import {nanoid} from 'nanoid';
 
-export const getDeviceId = (len = 6) => {
-  return nanoid().slice(0, len).toUpperCase();
+export const getPeerId = (len = 6) => {
+  return String((Math.random() * 10e16) ).slice(0, len);
 };
+
+
+
+

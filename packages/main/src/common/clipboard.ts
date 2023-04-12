@@ -21,11 +21,12 @@ export const writeToClipboard = (data: any) => {
     files.forEach((file:any) => {
       const {data: buffer, name} = file;
       const buffers = Buffer.from(buffer, 'utf8');
-      fs.writeFile(`./temp/${name}`, buffers, (err) => {
+      const dataPath = path.join(app.getPath('temp'), name);
+      fs.writeFile(dataPath, buffers, (err) => {
         if (err) throw err;
         console.log('The file has been saved!');
       });
-      filePaths.push(path.resolve(`${app.getAppPath()}/temp/${name}`) );
+      filePaths.push(dataPath);
     });
     console.log(filePaths);
     clipboardEx.writeFilePaths(filePaths);

@@ -52,7 +52,7 @@ const config = {
       preloadEntry: join(PACKAGE_ROOT, '../preload/src/index.ts'),
     }),
     injectAppVersion(),
-    nativeNodeModulesPlugin(),
+    // nativeNodeModulesPlugin(),
   ],
 };
 

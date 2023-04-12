@@ -1,7 +1,7 @@
 import {node} from '../../.electron-vendors.cache.json';
 import {join} from 'node:path';
 import {injectAppVersion} from '../../version/inject-app-version-plugin.mjs';
-import {nativeNodeModulesPlugin} from '../renderer/utils/nativeNodeModulesPlugin';
+// import {nativeNodeModulesPlugin} from '../renderer/utils/nativeNodeModulesPlugin';
 
 const PACKAGE_ROOT = __dirname;
 const PROJECT_ROOT = join(PACKAGE_ROOT, '../..');
@@ -18,7 +18,8 @@ const config = {
   },
   optimizeDeps: {
     exclude: ['robotjs'],
-  }, build: {
+  },
+  build: {
     ssr: true,
     sourcemap: 'inline',
     target: `node${node}`,
@@ -38,7 +39,7 @@ const config = {
   },
   plugins: [
     injectAppVersion(),
-    nativeNodeModulesPlugin(),
+    // nativeNodeModulesPlugin(),
   ],
 };
 
