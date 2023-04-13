@@ -49,8 +49,9 @@ app
   .whenReady()
   .then(async () => {
     const win = await restoreOrCreateWindow();
-    const ret = globalShortcut.register('CommandOrControl+B', async () => {
+    const ret = globalShortcut.register('CommandOrControl+B+N', async () => {
       const platform = process.platform;
+      console.log('CommandOrControl+B is pressed', platform);
       if (platform === 'darwin') {
         robot.keyTap('c', 'command');
       } else {

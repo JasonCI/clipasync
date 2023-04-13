@@ -64,14 +64,16 @@ window.electron.onClipboard((evt, {type, content}: ClipData) => {
     if (type === 'text') {
       sendList.value.set(content, {type, content, date, name: content});
     }
+    let name;
     if (type === 'file') {
-      let name = content[0]?.name;
+      name = content[0]?.name;
       if (content.length > 1) {
         name += '等' + content.length + '个文件';
       }
       sendList.value.set(name, {type, name, date, content});
     }
-    send({from: peerId, type, data: content, date});
+    send({from: peerId, type, data: content, date, name});
+    console.log('send', {from: peerId, type, data: content, date});
   }
 });
 </script>
