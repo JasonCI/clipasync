@@ -12,7 +12,7 @@ export const usePeer = (receive: (data: any) => void) => {
 
   let hostConnection: DataConnection;
   let remoteConnection: DataConnection;
-  const IDPREFIX = 'CLIP-ASYNC-';
+  const IDPREFIX = '';
   const peer = new Peer(`${IDPREFIX}${peerId}`, {
     // host: 'kfwong-server.herokuapp.com',
     // port: 443,
