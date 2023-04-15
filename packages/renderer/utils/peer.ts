@@ -65,13 +65,15 @@ export const usePeer = (receive: (data: any) => void) => {
   const remotePeerId = ref(storeId);
   let startTime = 0;
   let bytesTransferred = 0;
-
+  const maxRetry = 8;
+  let retry = 0;
   let hostConnection: DataConnection;
   let remoteConnection: DataConnection;
   const IDPREFIX = '';
   const peer = new Peer(`${IDPREFIX}${peerId}`, {
     host: 'peer.zeabur.app',
     port: 443,
+    debug: 3,
   });
   peer.on('open', id => {
     msgList.value.push('已建立与信号器的连接.');
@@ -88,18 +90,19 @@ export const usePeer = (receive: (data: any) => void) => {
     connection.on('open', () => {
       msgList.value.push(`已成功建立对接点连接： ${connection.peer} `);
       loading.value = false;
+      connected.value = true;
     });
 
     connection.on('data', data => {
       console.log('收到数据:\n', data);
       receive(data);
-      bytesTransferred += data.length;
-      if (startTime === 0) {
-        startTime = Date.now();
-      }
-      const elapsedTime = (Date.now() - startTime) / 1000;
-      const speed = bytesTransferred / elapsedTime;
-      console.log('transfer speed: ' + speed + ' bytes/s');
+      // bytesTransferred += data.length;
+      // if (startTime === 0) {
+      //   startTime = Date.now();
+      // }
+      // const elapsedTime = (Date.now() - startTime) / 1000;
+      // const speed = bytesTransferred / elapsedTime;
+      // console.log('transfer speed: ' + speed + ' bytes/s');
     });
     connection.on('close', () => {
       console.log(`连接 ${connection.peer} 已关闭.`);
@@ -112,67 +115,51 @@ export const usePeer = (receive: (data: any) => void) => {
     console.log('与信号器断开连接.');
     loading.value = false;
     connected.value = false;
-    peer.reconnect();
+    reconnect();
   });
 
   peer.on('error', (err) => {
-    msgList.value.push(`与id:${hostConnection.peer.replace(IDPREFIX, '')}连接失败...`);
+    msgList.value.push(`与id:${hostConnection.peer}连接失败...`);
     msgList.value.push(`失败原因${errors[err.type].zh}`);
     loading.value = false;
   });
 
 
-  function reconnect() {
+  const reconnect = () => {
     msgList.value = ['重新连接到信号器.'];
     msgList.value.push('◌ 搜索信号器...');
-    peer.reconnect();
-  }
+    // peer.reconnect();
+  };
 
   const join = () => {
     if (!remotePeerId.value) return;
-    localStorage.setItem('remotePeerId', remotePeerId.value);
     msgList.value.push(`开始连接到 ${remotePeerId.value}.`);
     hostConnection = hostConnection || peer.connect(`${IDPREFIX}${remotePeerId.value}`, {reliable: true});
     loading.value = true;
+    retry = 0;
     hostConnection.on('open', () => {
       msgList.value.push(`已连接到 ${hostConnection.peer}.`);
       connected.value = true;
       loading.value = false;
     });
 
-    // hostConnection.on('data', data => {
-    //   console.log('收到数据:', data);
-    // });
-    // hostConnection.on('error', err => {
-    //   console.log('err', err.type);
-    // });
-    //
     hostConnection.on('close', () => {
       msgList.value.push(`Connection to ${hostConnection.peer} is closed.`);
       connected.value = false;
       loading.value = false;
-
-      peer.destroy();
+      while (retry <= maxRetry) {
+        reconnect();
+        retry++;
+      }
     });
-    // setInterval(function() {
-    //   console.log('transfer msgList: ' + 0 + '%');
-    //   const dataChannel = hostConnection.dataChannel;
-    //   console.log(dataChannel.bufferedAmount, dataChannel.bufferedAmountLowThreshold);
-    //   // progress.value = 100 * (1 - dataChannel.bufferedAmount / dataChannel.bufferedAmountLowThreshold);
-    //   // console.log('transfer msgList: ' + progress.value + '%');
-    // }, 1000);
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     localStorage.setItem('remotePeerId', remotePeerId.value);
-    // localStorage.setItem('remotePeerId', remoteId);
   };
 
   function send(data) {
     if (hostConnection) {
       data.to = remoteConnection.peer;
       console.log('发送数据:', data);
-      hostConnection.send(data, true);
+      hostConnection.send(data);
       startTime = 0;
       bytesTransferred = 0;
     }

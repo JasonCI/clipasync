@@ -15,6 +15,27 @@ export interface ClipData {
   content: string[];
 }
 
+const test = () => {
+  const data = {
+    'from': 'SC6',
+    'type': 'text',
+    data: '1212',
+    'data1': [
+      {
+        'data': 'new ArrayBuffer(402)',
+        'path': '/Users/weitingting/Downloads/clipasync/packages/main/tsconfig.json',
+        'date': '2023/4/10 15:31:59',
+        'size': 402,
+        'name': 'tsconfig.json',
+        'ext': '.json',
+      },
+    ],
+    'date': '2023/4/10 15:31:59',
+    'to': 'RSP',
+  };
+  window.electron.setClipboard(data);
+};
+
 export interface TransferData {
   from: string;
   to: string;
@@ -23,10 +44,7 @@ export interface TransferData {
   date: string;
 }
 
-const confirm = () => {
-
-};
-const {join, send, msgList, connected, peerId, loading,remotePeerId} = usePeer(data => {
+const {join, send, msgList, connected, peerId, loading, remotePeerId} = usePeer(data => {
   const {date, type, name, data: content} = data;
   if (data.type === 'file') {
     receiveList.value.set(name, {type, name, date, content});
@@ -57,7 +75,6 @@ window.electron.onClipboard((evt, {type, content}: ClipData) => {
       sendList.value.set(name, {type, name, date, content});
     }
     send({from: peerId, type, data: content, date, name});
-    console.log('send', {from: peerId, type, data: content, date, name});
   }
 });
 </script>
@@ -99,6 +116,7 @@ window.electron.onClipboard((evt, {type, content}: ClipData) => {
         v-show="active === 'receive'"
         :list="receiveList"
       ></FileList>
+      {{ msgList }}
     </section>
   </main>
   <div
@@ -119,7 +137,7 @@ window.electron.onClipboard((evt, {type, content}: ClipData) => {
         建立连接
       </button>
       <button
-        @click="confirm"
+        @click="test"
       >
         确认连接
       </button>

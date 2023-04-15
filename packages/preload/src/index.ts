@@ -10,7 +10,6 @@ import {contextBridge, ipcRenderer} from 'electron';
 contextBridge.exposeInMainWorld('electron', {
   onClipboard: (callback: () => void) => ipcRenderer.on('clipboard', callback),
   setClipboard: (data: any) => {
-    console.log('preload,', data);
     ipcRenderer.send('set-clipboard', data);
   },
   store: {

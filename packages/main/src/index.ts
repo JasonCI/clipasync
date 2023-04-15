@@ -1,4 +1,4 @@
-import {app,  globalShortcut, ipcMain} from 'electron';
+import {app, globalShortcut, ipcMain} from 'electron';
 import './security-restrictions';
 import {platform} from 'node:process';
 import * as robot from 'robotjs';
@@ -52,7 +52,6 @@ app
 
       setTimeout(async () => {
         const content = await getClipboardContent();
-        console.log('content', content);
         // 发送到渲染进程
         win.webContents.send('clipboard', content);
       }, 500);
@@ -69,9 +68,9 @@ ipcMain.on('set-clipboard', (event, data) => {
 });
 
 
- // ipcMain.on('get-clipboard', (event, data) => {
- //
- // })
+// ipcMain.on('get-clipboard', (event, data) => {
+//
+// })
 // ipcMain.on('electron-store-get', async (event, val) => {
 //   event.returnValue = store.get(val);
 // });

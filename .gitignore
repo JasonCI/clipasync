@@ -60,3 +60,4 @@ thumbs.db
 .github
 /.github/
 /.idea/
+!/build/
