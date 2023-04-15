@@ -1,18 +1,10 @@
-import {app, globalShortcut, ipcMain} from 'electron';
+import {app,  globalShortcut, ipcMain} from 'electron';
 import './security-restrictions';
 import {platform} from 'node:process';
 import * as robot from 'robotjs';
 import {restoreOrCreateWindow} from '/@/common/mainWindow';
 import {getClipboardContent, writeToClipboard} from '/@/common/clipboard';
-// const Store = require('electron-store');
-//
-// const store = new Store({
-//   name: 'userInfo',//文件名称,默认 config
-//   fileExtension: 'json',//文件后缀,默认json
-//   cwd: app.getPath('userData'),//文件位置,尽量不要动
-//   //    encryptionKey:"aes-256-cbc" ,//对配置文件进行加密
-//   clearInvalidConfig: true, // 发生 SyntaxError  则清空配置,
-// });
+
 /**
  * Prevent electron from running multiple instances.
  */
@@ -49,7 +41,7 @@ app
   .whenReady()
   .then(async () => {
     const win = await restoreOrCreateWindow();
-    const ret = globalShortcut.register('CommandOrControl+B+N', async () => {
+    const ret = globalShortcut.register('CommandOrControl+B', async () => {
       const platform = process.platform;
       console.log('CommandOrControl+B is pressed', platform);
       if (platform === 'darwin') {
@@ -60,6 +52,7 @@ app
 
       setTimeout(async () => {
         const content = await getClipboardContent();
+        console.log('content', content);
         // 发送到渲染进程
         win.webContents.send('clipboard', content);
       }, 500);
@@ -74,16 +67,18 @@ app
 ipcMain.on('set-clipboard', (event, data) => {
   writeToClipboard(data);
 });
-ipcMain.on('electron-store-get', async (event, val) => {
-  // event.returnValue = '1'||store.get(val);
-});
-ipcMain.on('electron-store-set', async (event, key, val) => {
-  // store.set(key, val);
-});
-app.on('will-quit', () => {
-  // 注销快捷键
-  globalShortcut.unregister('CommandOrControl+B');
 
+
+ // ipcMain.on('get-clipboard', (event, data) => {
+ //
+ // })
+// ipcMain.on('electron-store-get', async (event, val) => {
+//   event.returnValue = store.get(val);
+// });
+// ipcMain.on('electron-store-set', async (event, key, val) => {
+//   store.set(key, val);
+// });
+app.on('will-quit', () => {
   // 注销所有快捷键
   globalShortcut.unregisterAll();
 });

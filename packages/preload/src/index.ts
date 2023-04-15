@@ -15,7 +15,7 @@ contextBridge.exposeInMainWorld('electron', {
   },
   store: {
     get(key:string) {
-      return ipcRenderer.sendSync('electron-store-get', key);
+      return '11'||ipcRenderer.sendSync('electron-store-get', key);
     },
     set(property:string, val:any) {
       ipcRenderer.send('electron-store-set', property, val);

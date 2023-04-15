@@ -9,8 +9,6 @@ import IconSetting from '/@/icons/Setting.vue';
 const sendList = ref(new Map());
 const receiveList = ref(new Map());
 const active = ref('send');
-// const storePeerId = window.electron.store.get('remotePeerId') || '';
-const remotePeerId = ref('');
 
 export interface ClipData {
   type: 'text' | 'empty' | 'file';
@@ -25,27 +23,10 @@ export interface TransferData {
   date: string;
 }
 
-const test = () => {
-  const data = {
-    'from': 'SC6',
-    'type': 'file',
-    'data': [
-      {
-        'data': new ArrayBuffer(402),
-        'path': '/Users/weitingting/Downloads/clipasync/packages/main/tsconfig.json',
-        'date': '2023/4/10 15:31:59',
-        'size': 402,
-        'name': 'tsconfig.json',
-        'ext': '.json',
-      },
-    ],
-    'date': '2023/4/10 15:31:59',
-    'to': 'RSP',
-  };
-  window.electron.setClipboard(data);
-};
-const {join, send, progress, connected, peerId, loading} = usePeer(data => {
+const confirm = () => {
 
+};
+const {join, send, msgList, connected, peerId, loading,remotePeerId} = usePeer(data => {
   const {date, type, name, data: content} = data;
   if (data.type === 'file') {
     receiveList.value.set(name, {type, name, date, content});
@@ -56,15 +37,18 @@ const {join, send, progress, connected, peerId, loading} = usePeer(data => {
   window.electron.setClipboard(data);
 });
 
+
 // 调用主进程中的 clipboard 模块
 window.electron.onClipboard((evt, {type, content}: ClipData) => {
   if (content.length) {
     // sendList.value = new Map();
     const date = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
+    let name;
     if (type === 'text') {
+      name = content.slice(0, 50);
       sendList.value.set(content, {type, content, date, name: content});
     }
-    let name;
+
     if (type === 'file') {
       name = content[0]?.name;
       if (content.length > 1) {
@@ -73,7 +57,7 @@ window.electron.onClipboard((evt, {type, content}: ClipData) => {
       sendList.value.set(name, {type, name, date, content});
     }
     send({from: peerId, type, data: content, date, name});
-    console.log('send', {from: peerId, type, data: content, date});
+    console.log('send', {from: peerId, type, data: content, date, name});
   }
 });
 </script>
@@ -105,7 +89,7 @@ window.electron.onClipboard((evt, {type, content}: ClipData) => {
     </ul>
     <section>
       <!--      <div class="title">{{ active === 'send' ? '已发送' : '已接收' }}</div>-->
-      <!--      {{ progress }}-->
+      <!--      {{ msgList }}-->
       <!--      <button @click="test">test</button>-->
       <FileList
         v-show="active === 'send'"
@@ -124,20 +108,25 @@ window.electron.onClipboard((evt, {type, content}: ClipData) => {
     <div class="content">
       <input
         v-model="remotePeerId"
-        maxlength="6"
+        maxlength="66"
         style="text-align: center"
         placeholder="输入六位数字id配对"
       />
       <button
         :disabled="!remotePeerId||loading"
-        @click="join(remotePeerId)"
+        @click="join"
       >
         建立连接
+      </button>
+      <button
+        @click="confirm"
+      >
+        确认连接
       </button>
     </div>
     <ul class="msg">
       <li
-        v-for="msg in progress"
+        v-for="msg in msgList"
         :key="msg"
       >
         - {{ msg }}

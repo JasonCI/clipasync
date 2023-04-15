@@ -17,7 +17,7 @@ const config = {
     },
   },
   optimizeDeps: {
-    exclude: ['robotjs'],
+    exclude: ['robotjs','electron-store'],
   },
   build: {
     ssr: true,
