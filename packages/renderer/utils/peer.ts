@@ -1,7 +1,7 @@
 import type {DataConnection} from 'peerjs';
 import Peer from 'peerjs';
-import {getPeerId} from './index';
-import {ref} from 'vue';
+import type {Ref} from 'vue';
+import { ref} from 'vue';
 
 
 const errors = {
@@ -56,114 +56,100 @@ const errors = {
 };
 
 export const usePeer = (receive: (data: any) => void) => {
-  const peerId = localStorage.getItem('peerId') || getPeerId(5);
+  const peerId = localStorage.getItem('peerId') || (Math.random() * 10e10).toString().slice(0, 3);
   const storeId = localStorage.getItem('remotePeerId');
-  const msgList = ref([]);
+  const msgList: Ref<string[]> = ref([]);
   const connected = ref(false);
   const loading = ref(false);
   const progress = ref(0);
   const remotePeerId = ref(storeId);
-  let startTime = 0;
-  let bytesTransferred = 0;
-  const maxRetry = 8;
-  let retry = 0;
+  const startTime = 0;
+  const bytesTransferred = 0;
   let hostConnection: DataConnection;
   let remoteConnection: DataConnection;
   const IDPREFIX = '';
   const peer = new Peer(`${IDPREFIX}${peerId}`, {
     host: 'peer.zeabur.app',
     port: 443,
-    debug: 3,
   });
   peer.on('open', id => {
-    msgList.value.push('已建立与信号器的连接.');
-    msgList.value.push(`分配 id: ${id.replace(IDPREFIX, '')}`);
+    msgList.value.push(`已与中继服务器建立连接. 分配Id:${id}`);
     localStorage.setItem('peerId', id);
-    join();
+  });
+  peer.on('close', () => {
+    console.log('peer-on-close.');
+  });
+  peer.on('disconnected', () => {
+    console.log('peer-on-disconnected.');
   });
 
+  peer.on('error', (err: any) => {
+    msgList.value.push(`与id:${hostConnection.peer}连接失败...`);
+    msgList.value.push(`失败原因${errors[err.type].zh}`);
+    connected.value = false;
+  });
+  // 远程连接监听
   peer.on('connection', connection => {
-    loading.value = true;
     remoteConnection = connection;
-    msgList.value.push(`${connection.peer} 正在尝试建立连接.`);
-
+    // 远程连接建立
     connection.on('open', () => {
-      msgList.value.push(`已成功建立对接点连接： ${connection.peer} `);
+      join();
       loading.value = false;
       connected.value = true;
     });
 
     connection.on('data', data => {
-      console.log('收到数据:\n', data);
       receive(data);
-      // bytesTransferred += data.length;
-      // if (startTime === 0) {
-      //   startTime = Date.now();
-      // }
-      // const elapsedTime = (Date.now() - startTime) / 1000;
-      // const speed = bytesTransferred / elapsedTime;
-      // console.log('transfer speed: ' + speed + ' bytes/s');
+      connection.send({data: 1, id: peerId});
     });
     connection.on('close', () => {
       console.log(`连接 ${connection.peer} 已关闭.`);
-      connected.value = false;
-      loading.value = false;
     });
-  });
-
-  peer.on('disconnected', () => {
-    console.log('与信号器断开连接.');
-    loading.value = false;
-    connected.value = false;
-    reconnect();
-  });
-
-  peer.on('error', (err) => {
-    msgList.value.push(`与id:${hostConnection.peer}连接失败...`);
-    msgList.value.push(`失败原因${errors[err.type].zh}`);
-    loading.value = false;
   });
 
 
   const reconnect = () => {
     msgList.value = ['重新连接到信号器.'];
     msgList.value.push('◌ 搜索信号器...');
-    // peer.reconnect();
+    peer.reconnect();
   };
 
-  const join = () => {
+  const once = (fn: () => void) => {
+    let count = 0;
+    return function () {
+      if (count++ === 0) {
+        fn();
+      }
+    };
+  };
+  const join = once(() => {
     if (!remotePeerId.value) return;
-    msgList.value.push(`开始连接到 ${remotePeerId.value}.`);
     hostConnection = hostConnection || peer.connect(`${IDPREFIX}${remotePeerId.value}`, {reliable: true});
     loading.value = true;
-    retry = 0;
+    msgList.value.push(`开始建立到 ${remotePeerId.value}的连接`);
     hostConnection.on('open', () => {
-      msgList.value.push(`已连接到 ${hostConnection.peer}.`);
+      msgList.value.push(`已与远程端点 ${hostConnection.peer} 建立连接 .`);
       connected.value = true;
       loading.value = false;
     });
-
+    setInterval(()=>{
+      console.log(hostConnection.dataChannel.bufferedAmount);
+    },1000);
+    hostConnection.on('data', (data) => {
+      console.log('host-on-data.', {data});
+    });
     hostConnection.on('close', () => {
-      msgList.value.push(`Connection to ${hostConnection.peer} is closed.`);
+      msgList.value.push(`远程端点 ${hostConnection.peer} 已关闭连接 .`);
       connected.value = false;
-      loading.value = false;
-      while (retry <= maxRetry) {
-        reconnect();
-        retry++;
-      }
     });
     localStorage.setItem('remotePeerId', remotePeerId.value);
-  };
+  });
 
-  function send(data) {
+  const send = (data: any) => {
     if (hostConnection) {
-      data.to = remoteConnection.peer;
-      console.log('发送数据:', data);
-      hostConnection.send(data);
-      startTime = 0;
-      bytesTransferred = 0;
+      hostConnection.send(data, true);
     }
-  }
+  };
 
   return {
     msgList,

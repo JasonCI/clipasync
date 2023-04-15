@@ -126,7 +126,7 @@ window.electron.onClipboard((evt, {type, content}: ClipData) => {
     <div class="content">
       <input
         v-model="remotePeerId"
-        maxlength="66"
+        maxlength="6"
         style="text-align: center"
         placeholder="输入六位数字id配对"
       />
