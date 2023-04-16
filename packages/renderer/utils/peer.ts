@@ -1,8 +1,19 @@
 import type {DataConnection} from 'peerjs';
 import Peer from 'peerjs';
 import type {Ref} from 'vue';
-import { ref} from 'vue';
+import {ref} from 'vue';
+import {getPeerId} from './index';
 
+
+export interface TransferData {
+  from: string;
+  name: string;
+  to?: string;
+  size: number;
+  type: 'text' | 'file';
+  data: string | (Record<string, any>[]);
+  date: string;
+}
 
 const errors = {
   'browser-incompatible': {
@@ -56,17 +67,14 @@ const errors = {
 };
 
 export const usePeer = (receive: (data: any) => void) => {
-  const peerId = localStorage.getItem('peerId') || (Math.random() * 10e10).toString().slice(0, 3);
+  const peerId = localStorage.getItem('peerId') || getPeerId();
   const storeId = localStorage.getItem('remotePeerId');
   const msgList: Ref<string[]> = ref([]);
   const connected = ref(false);
   const loading = ref(false);
   const progress = ref(0);
   const remotePeerId = ref(storeId);
-  const startTime = 0;
-  const bytesTransferred = 0;
   let hostConnection: DataConnection;
-  let remoteConnection: DataConnection;
   const IDPREFIX = '';
   const peer = new Peer(`${IDPREFIX}${peerId}`, {
     host: 'peer.zeabur.app',
@@ -90,7 +98,7 @@ export const usePeer = (receive: (data: any) => void) => {
   });
   // 远程连接监听
   peer.on('connection', connection => {
-    remoteConnection = connection;
+    // remoteConnection = connection;
     // 远程连接建立
     connection.on('open', () => {
       join();
@@ -116,7 +124,7 @@ export const usePeer = (receive: (data: any) => void) => {
 
   const once = (fn: () => void) => {
     let count = 0;
-    return function () {
+    return function() {
       if (count++ === 0) {
         fn();
       }
@@ -132,9 +140,6 @@ export const usePeer = (receive: (data: any) => void) => {
       connected.value = true;
       loading.value = false;
     });
-    setInterval(()=>{
-      console.log(hostConnection.dataChannel.bufferedAmount);
-    },1000);
     hostConnection.on('data', (data) => {
       console.log('host-on-data.', {data});
     });
@@ -145,9 +150,13 @@ export const usePeer = (receive: (data: any) => void) => {
     localStorage.setItem('remotePeerId', remotePeerId.value);
   });
 
-  const send = (data: any) => {
+  const send = (data: TransferData) => {
     if (hostConnection) {
-      hostConnection.send(data, true);
+      const date = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
+      data.to = remotePeerId.value;
+      data.from = peerId;
+      data.date = date;
+      hostConnection.send(data);
     }
   };
 

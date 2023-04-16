@@ -3,48 +3,22 @@ import {ref} from 'vue';
 import FileList from '/@/components/FileList.vue';
 import IconSend from '/@/icons/Send.vue';
 import IconReceive from '/@/icons/Receive.vue';
+import type {TransferData} from '../utils/peer';
 import {usePeer} from '../utils/peer';
 import IconSetting from '/@/icons/Setting.vue';
+import type {ClipFile} from '../../main/types/global';
+import {fileSize} from '../utils';
 
 const sendList = ref(new Map());
-const receiveList = ref(new Map());
+const receiveList =ref(new Map());
 const active = ref('send');
 
 export interface ClipData {
   type: 'text' | 'empty' | 'file';
-  content: string[];
+  content: string | ClipFile[];
 }
 
-const test = () => {
-  const data = {
-    'from': 'SC6',
-    'type': 'text',
-    data: '1212',
-    'data1': [
-      {
-        'data': 'new ArrayBuffer(402)',
-        'path': '/Users/weitingting/Downloads/clipasync/packages/main/tsconfig.json',
-        'date': '2023/4/10 15:31:59',
-        'size': 402,
-        'name': 'tsconfig.json',
-        'ext': '.json',
-      },
-    ],
-    'date': '2023/4/10 15:31:59',
-    'to': 'RSP',
-  };
-  window.electron.setClipboard(data);
-};
-
-export interface TransferData {
-  from: string;
-  to: string;
-  type: 'text' | 'file';
-  data: string | string[];
-  date: string;
-}
-
-const {join, send, msgList, connected, peerId, loading, remotePeerId} = usePeer(data => {
+const {join, send, msgList, connected, loading, remotePeerId} = usePeer(data => {
   const {date, type, name, data: content} = data;
   if (data.type === 'file') {
     receiveList.value.set(name, {type, name, date, content});
@@ -59,22 +33,22 @@ const {join, send, msgList, connected, peerId, loading, remotePeerId} = usePeer(
 // 调用主进程中的 clipboard 模块
 window.electron.onClipboard((evt, {type, content}: ClipData) => {
   if (content.length) {
-    // sendList.value = new Map();
-    const date = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
-    let name;
+    let name, data;
     if (type === 'text') {
       name = content.slice(0, 50);
-      sendList.value.set(content, {type, content, date, name: content});
-    }
+      data = {type, content, name: content, size: content.length};
 
+    }
     if (type === 'file') {
       name = content[0]?.name;
       if (content.length > 1) {
         name += '等' + content.length + '个文件';
       }
-      sendList.value.set(name, {type, name, date, content});
+      const size = (content as ClipFile[]).reduce((sum, file) => sum + file.size, 0);
+      data = {type, name, content, size: fileSize(size)};
     }
-    send({from: peerId, type, data: content, date, name});
+    sendList.value.set(name, data);
+    send(data as TransferData);
   }
 });
 </script>
@@ -110,13 +84,14 @@ window.electron.onClipboard((evt, {type, content}: ClipData) => {
       <!--      <button @click="test">test</button>-->
       <FileList
         v-show="active === 'send'"
+        type="send"
         :list="sendList"
       ></FileList>
       <FileList
         v-show="active === 'receive'"
+        type="receive"
         :list="receiveList"
       ></FileList>
-      {{ msgList }}
     </section>
   </main>
   <div
@@ -135,11 +110,6 @@ window.electron.onClipboard((evt, {type, content}: ClipData) => {
         @click="join"
       >
         建立连接
-      </button>
-      <button
-        @click="test"
-      >
-        确认连接
       </button>
     </div>
     <ul class="msg">

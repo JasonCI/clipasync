@@ -21,4 +21,13 @@ interface ClipConfig {
   set(value: any): void;
 }
 
+export interface ClipFile {
+  data: Buffer;
+  path: string;
+  date: string;
+  size: number;
+  name: string;
+  ext: string;
+}
+
 export {};

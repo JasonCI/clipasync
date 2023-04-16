@@ -5,6 +5,7 @@ import {app, clipboard} from 'electron';
 import * as robot from 'robotjs';
 import * as path from 'path';
 import * as process from 'process';
+import type {ClipFile} from '../../types/global';
 
 const getFiles = async (paths: string[]) => {
   return Promise.all(paths.map(p => readFile(p)));
@@ -18,10 +19,11 @@ export const writeToClipboard = (data: any) => {
   if (data.type === 'file') {
     const files = data.data;
     const filePaths: string[] = [];
-    files.forEach((file:any) => {
+    files.forEach((file: any) => {
       const {data: buffer, name} = file;
       const buffers = Buffer.from(buffer, 'utf8');
       const dataPath = path.join(app.getPath('temp'), name);
+      console.log(dataPath);
       fs.writeFile(dataPath, buffers, (err) => {
         if (err) throw err;
         console.log('The file has been saved!');
@@ -33,7 +35,9 @@ export const writeToClipboard = (data: any) => {
   }
 };
 
-const readFile = async (p: string) => {
+
+
+const readFile = async (p: string): Promise<ClipFile|null> => {
   return new Promise((resolve, reject) => {
     fs.stat(p, (err: NodeJS.ErrnoException | null, stats: Stats) => {
       if (err) reject(err);
@@ -52,14 +56,7 @@ const readFile = async (p: string) => {
         });
       }
       if (stats.isDirectory()) {
-        resolve({
-          data: null,
-          size: stats.size,
-          path: p,
-          date,
-          name: path.basename(p),
-          ext: path.extname(p),
-        });
+        resolve(null);
       }
     });
   });
@@ -111,6 +108,7 @@ export const getClipboardContent = async () => {
     // console.log({filePath,filePaths});
     if (filePaths.length > 0) {
       getFiles(filePaths).then(files => {
+        files = files.filter(f => !!f);
         resolve({
           type: 'file',
           content: files,
