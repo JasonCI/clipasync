@@ -7,6 +7,7 @@ async function createWindow() {
     title: 'ClipAsync',
     width: 440,
     height: 650,
+    autoHideMenuBar: true,
     resizable: import.meta.env.DEV,
     show: false, // Use the 'ready-to-show' event to show the instantiated BrowserWindow.
     webPreferences: {

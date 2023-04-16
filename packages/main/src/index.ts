@@ -4,6 +4,7 @@ import {platform} from 'node:process';
 import * as robot from 'robotjs';
 import {restoreOrCreateWindow} from '/@/common/mainWindow';
 import {getClipboardContent, writeToClipboard} from '/@/common/clipboard';
+import createTray from '/@/common/tray';
 
 /**
  * Prevent electron from running multiple instances.
@@ -43,7 +44,6 @@ app
     const win = await restoreOrCreateWindow();
     const ret = globalShortcut.register('CommandOrControl+B', async () => {
       const platform = process.platform;
-      console.log('CommandOrControl+B is pressed', platform);
       if (platform === 'darwin') {
         robot.keyTap('c', 'command');
       } else {
@@ -59,6 +59,7 @@ app
     if (!ret) {
       console.log('registration failed');
     }
+    createTray(win);
   })
   .catch(e => console.error('Failed create window:', e));
 

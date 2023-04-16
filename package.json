@@ -24,9 +24,9 @@
     "postinstall": "cross-env ELECTRON_RUN_AS_NODE=1 electron scripts/update-electron-vendors.mjs",
     "format": "npx prettier --write \"**/*.{js,mjs,cjs,ts,mts,cts,vue,json}\"",
     "bundle": "cross-env MODE=production pnpm run build && electron-builder build --config .electron-builder.config.js --dir --config.asar=false",
-    "pack:win": "pnpm build && electron-builder --win --x64",
-    "pack:linux": "pnpm build && electron-builder --linux",
-    "pack:mac": "pnpm build && electron-builder --mac"
+    "build:win": "pnpm build && electron-builder --win --x64",
+    "build:linux": "pnpm build && electron-builder --linux",
+    "build:mac": "pnpm build && electron-builder --mac"
   },
   "devDependencies": {
     "@electron/rebuild": "^3.2.10",
