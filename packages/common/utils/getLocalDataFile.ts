@@ -6,7 +6,7 @@ export default (): string => {
   if (!localDataFile) {
     localDataFile = process.env.LOCALAPPDATA;
   }
-  const clipAsyncPath = path.join(localDataFile, 'clip-async');
+  const clipAsyncPath = path.join(localDataFile, 'clipboard-sync');
   if (!fs.existsSync(clipAsyncPath)) {
     fs.mkdirSync(clipAsyncPath);
   }

@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import getLocalDataFile from './getLocalDataFile';
 import defaultConfigForAnyPlatform from '../constans/defaultConfig';
 
-const configPath = path.join(getLocalDataFile(), './clipasync-config.json');
+const configPath = path.join(getLocalDataFile(), './clipboardsync-config.json');
 global.OP_CONFIG = {
   config: null,
   get() {

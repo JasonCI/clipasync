@@ -39,7 +39,7 @@ function createTray(window: BrowserWindow): Promise<Tray> {
           label: '帮助文档',
           click: () => {
             process.nextTick(() => {
-              shell.openExternal('https://github.com/JasonCI/clipasync');
+              shell.openExternal('https://github.com/JasonCI/clipboardsync');
             });
           },
         },
@@ -47,7 +47,7 @@ function createTray(window: BrowserWindow): Promise<Tray> {
           label: '意见反馈',
           click: () => {
             process.nextTick(() => {
-              shell.openExternal('https://github.com/JasonCI/clipasync/issues');
+              shell.openExternal('https://github.com/JasonCI/clipboardsync/issues');
             });
           },
         },

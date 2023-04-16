@@ -1,5 +1,5 @@
 {
-  "name": "clipasync",
+  "name": "clipboardsync",
   "description": "剪贴板同步",
   "version": "1.0.0",
   "private": true,
