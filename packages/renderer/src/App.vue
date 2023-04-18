@@ -8,23 +8,30 @@ import {usePeer} from '../utils/peer';
 import IconSetting from '/@/icons/Setting.vue';
 import type {ClipFile} from '../../main/types/global';
 import {fileSize} from '../utils';
+import ConfigEdit from '/@/components/ConfigEdit.vue';
+import {userTransferHistory} from '../utils/transferHistory';
+import type {ClipConfig} from '../types/global';
 
-const sendList = ref(new Map());
-const receiveList =ref(new Map());
 const active = ref('send');
+const config: ClipConfig = window.electron.store.getConfig();
+const sendMap: Map<string,any> = window.electron.store.getRecord('send');
+const receiveMap: Map<string,any> = window.electron.store.getRecord('receive');
 
 export interface ClipData {
   type: 'text' | 'empty' | 'file';
   content: string | ClipFile[];
 }
 
+const {map: sendList, set: sendMapSet} = userTransferHistory(config.maxSendRecord, sendMap);
+const {map: receiveList, set: receiveMapSet} = userTransferHistory(config.maxReceiveRecord, receiveMap);
+
 const {join, send, msgList, connected, loading, remotePeerId} = usePeer(data => {
   const {date, type, name, data: content} = data;
   if (data.type === 'file') {
-    receiveList.value.set(name, {type, name, date, content});
+    receiveMapSet(name, {type, name, date, content});
   }
   if (data.type === 'text') {
-    receiveList.value.set(content, {type, content, name: content, date});
+    receiveMapSet(content, {type, content, name: content, date});
   }
   window.electron.setClipboard(data);
 });
@@ -34,10 +41,10 @@ const {join, send, msgList, connected, loading, remotePeerId} = usePeer(data => 
 window.electron.onClipboard((evt, {type, content}: ClipData) => {
   if (content.length) {
     let name, data;
+    const date = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
     if (type === 'text') {
       name = content.slice(0, 50);
-      data = {type, content, name: content, size: content.length};
-
+      data = {type, content, name: content, size: content.length, date};
     }
     if (type === 'file') {
       name = content[0]?.name;
@@ -45,9 +52,9 @@ window.electron.onClipboard((evt, {type, content}: ClipData) => {
         name += '等' + content.length + '个文件';
       }
       const size = (content as ClipFile[]).reduce((sum, file) => sum + file.size, 0);
-      data = {type, name, content, size: fileSize(size)};
+      data = {type, name, content, size: fileSize(size), date};
     }
-    sendList.value.set(name, data);
+    sendMapSet(name, data);
     send(data as TransferData);
   }
 });
@@ -79,9 +86,6 @@ window.electron.onClipboard((evt, {type, content}: ClipData) => {
       </li>
     </ul>
     <section>
-      <!--      <div class="title">{{ active === 'send' ? '已发送' : '已接收' }}</div>-->
-      <!--      {{ msgList }}-->
-      <!--      <button @click="test">test</button>-->
       <FileList
         v-show="active === 'send'"
         type="send"
@@ -92,6 +96,7 @@ window.electron.onClipboard((evt, {type, content}: ClipData) => {
         type="receive"
         :list="receiveList"
       ></FileList>
+      <config-edit v-show="active === 'setting'"></config-edit>
     </section>
   </main>
   <div

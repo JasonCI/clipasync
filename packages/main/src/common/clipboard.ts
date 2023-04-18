@@ -7,19 +7,21 @@ import * as path from 'path';
 import * as process from 'process';
 import type {ClipFile} from '../../types/global';
 
-const getFiles = async (paths: string[]) => {
-  return Promise.all(paths.map(p => readFile(p)));
+const getFilesStat = async (paths: string[]) => {
+  return Promise.all(paths.map(p => readFileStat(p)));
+};
+export const getFiles = async (stats: ClipFile[]) => {
+  return Promise.all(stats.map(s => readFile(s)));
 };
 
 export const writeToClipboard = (data: any) => {
-  console.log('writeToClipboard', data);
   if (data.type === 'text') {
     clipboard.writeText(data.data);
   }
   if (data.type === 'file') {
     const files = data.data;
     const filePaths: string[] = [];
-    files.forEach((file: any) => {
+    files.forEach((file:any) => {
       const {data: buffer, name} = file;
       const buffers = Buffer.from(buffer, 'utf8');
       const dataPath = path.join(app.getPath('temp'), name);
@@ -30,34 +32,41 @@ export const writeToClipboard = (data: any) => {
       });
       filePaths.push(dataPath);
     });
-    console.log(filePaths);
     clipboardEx.writeFilePaths(filePaths);
+    return filePaths;
   }
+
 };
 
-
-
-const readFile = async (p: string): Promise<ClipFile|null> => {
+const readFileStat = (p: string) => {
   return new Promise((resolve, reject) => {
     fs.stat(p, (err: NodeJS.ErrnoException | null, stats: Stats) => {
       if (err) reject(err);
       const date = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
       if (stats.isFile()) {
-        fs.readFile(p, (err: NodeJS.ErrnoException | null, data: Buffer) => {
-          if (err) reject(err);
-          resolve({
-            data,
-            path: p,
-            date,
-            size: stats.size,
-            name: path.basename(p),
-            ext: path.extname(p),
-          });
+        resolve({
+          path: p,
+          date,
+          size: stats.size,
+          name: path.basename(p),
+          ext: path.extname(p),
         });
       }
       if (stats.isDirectory()) {
         resolve(null);
       }
+    });
+  });
+};
+
+const readFile = async (stat: ClipFile): Promise<ClipFile> => {
+  return new Promise((resolve, reject) => {
+    fs.readFile(stat.path, (err: NodeJS.ErrnoException | null, data: Buffer) => {
+      if (err) reject(err);
+      resolve({
+        ...stat,
+        data,
+      });
     });
   });
 };
@@ -107,7 +116,7 @@ export const getClipboardContent = async () => {
   return new Promise(resolve => {
     // console.log({filePath,filePaths});
     if (filePaths.length > 0) {
-      getFiles(filePaths).then(files => {
+      getFilesStat(filePaths).then(files => {
         files = files.filter(f => !!f);
         resolve({
           type: 'file',

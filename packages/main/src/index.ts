@@ -3,8 +3,10 @@ import './security-restrictions';
 import {platform} from 'node:process';
 import * as robot from 'robotjs';
 import {restoreOrCreateWindow} from '/@/common/mainWindow';
-import {getClipboardContent, writeToClipboard} from '/@/common/clipboard';
+import {getClipboardContent, getFiles, writeToClipboard} from '/@/common/clipboard';
 import createTray from '/@/common/tray';
+import {store} from '/@/common/store';
+import type {ClipFile} from '../types/global';
 
 /**
  * Prevent electron from running multiple instances.
@@ -42,7 +44,7 @@ app
   .whenReady()
   .then(async () => {
     const win = await restoreOrCreateWindow();
-    const ret = globalShortcut.register('CommandOrControl+B', async () => {
+    const ret = globalShortcut.register('CommandOrControl+Shift+V', async () => {
       const platform = process.platform;
       if (platform === 'darwin') {
         robot.keyTap('c', 'command');
@@ -68,16 +70,24 @@ ipcMain.on('set-clipboard', (event, data) => {
   writeToClipboard(data);
 });
 
+ipcMain.on('electron-get-files', async (event, fileStats: ClipFile[]) => {
+  event.returnValue = await getFiles(fileStats);
+});
 
-// ipcMain.on('get-clipboard', (event, data) => {
-//
-// })
-// ipcMain.on('electron-store-get', async (event, val) => {
-//   event.returnValue = store.get(val);
-// });
-// ipcMain.on('electron-store-set', async (event, key, val) => {
-//   store.set(key, val);
-// });
+ipcMain.on('store-config-get', async (event) => {
+  event.returnValue = store.getConfig();
+});
+
+ipcMain.on('store-config-set', async (event, val) => {
+  store.setRecord('config', val);
+});
+ipcMain.on('store-record-get', async (event, key: 'send' | 'receive') => {
+  event.returnValue = store.getRecord(key);
+});
+
+ipcMain.on('store-record-set', async (event, key: 'send' | 'receive', val: any) => {
+  store.setRecord(key, val);
+});
 app.on('will-quit', () => {
   // 注销所有快捷键
   globalShortcut.unregisterAll();

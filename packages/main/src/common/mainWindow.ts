@@ -4,7 +4,7 @@ import {URL} from 'node:url';
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
-    title: 'ClipAsync',
+    title: 'ClipboardSync',
     width: 440,
     height: 650,
     autoHideMenuBar: true,

@@ -3,6 +3,7 @@ import Peer from 'peerjs';
 import type {Ref} from 'vue';
 import {ref} from 'vue';
 import {getPeerId} from './index';
+import type {ClipFile} from '../../main/types/global';
 
 
 export interface TransferData {
@@ -11,7 +12,7 @@ export interface TransferData {
   to?: string;
   size: number;
   type: 'text' | 'file';
-  data: string | (Record<string, any>[]);
+  content: (string | ClipFile)[];
   date: string;
 }
 
@@ -70,7 +71,7 @@ export const usePeer = (receive: (data: any) => void) => {
   const peerId = localStorage.getItem('peerId') || getPeerId();
   const storeId = localStorage.getItem('remotePeerId');
   const msgList: Ref<string[]> = ref([]);
-  const connected = ref(false);
+  const connected = ref(true);
   const loading = ref(false);
   const progress = ref(0);
   const remotePeerId = ref(storeId);
@@ -152,10 +153,11 @@ export const usePeer = (receive: (data: any) => void) => {
 
   const send = (data: TransferData) => {
     if (hostConnection) {
-      const date = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
       data.to = remotePeerId.value;
       data.from = peerId;
-      data.date = date;
+      if (data.type === 'file') {
+        data.content = window.electron.getFiles(data.content);
+      }
       hostConnection.send(data);
     }
   };
