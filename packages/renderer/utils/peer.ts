@@ -71,7 +71,7 @@ export const usePeer = (receive: (data: any) => void) => {
   const peerId = localStorage.getItem('peerId') || getPeerId();
   const storeId = localStorage.getItem('remotePeerId');
   const msgList: Ref<string[]> = ref([]);
-  const connected = ref(true);
+  const connected = ref(false);
   const loading = ref(false);
   const progress = ref(0);
   const remotePeerId = ref(storeId);
