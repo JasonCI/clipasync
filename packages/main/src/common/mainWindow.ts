@@ -8,6 +8,9 @@ async function createWindow() {
     width: 440,
     height: 650,
     autoHideMenuBar: true,
+    // transparent: true,
+    frame: false,
+    titleBarStyle: 'customButtonsOnHover',
     resizable: import.meta.env.DEV,
     show: false, // Use the 'ready-to-show' event to show the instantiated BrowserWindow.
     webPreferences: {

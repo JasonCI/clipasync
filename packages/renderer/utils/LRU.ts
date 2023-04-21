@@ -1,5 +1,5 @@
 import type {Ref} from 'vue';
-import { ref} from 'vue';
+import {ref, toRaw} from 'vue';
 
 export class LRU {
   private len: number;
@@ -24,6 +24,10 @@ export class LRU {
     if (this.map.value.size > this.len) {
       const k = this.map.value.keys().next().value;
       this.map.value.delete(k);
+      if(this instanceof ReceiveLRU){
+        window.electron.store.delRecord(val);
+      }
+      console.log('del',val);
     }
   }
 
@@ -43,7 +47,7 @@ export class SendLRU extends LRU {
   }
   set(key: any, val: any) {
     super.set(key, val);
-    window.electron.store.setRecord('send', this.getMap());
+    window.electron.store.setRecord('send', JSON.stringify([...toRaw(super.getMap().value)]));
   }
 }
 export class ReceiveLRU extends LRU {
@@ -52,7 +56,7 @@ export class ReceiveLRU extends LRU {
   }
   set(key: any, val: any) {
     super.set(key, val);
-    window.electron.store.setRecord('receive', this.getMap());
+    window.electron.store.setRecord('receive', JSON.stringify([...toRaw(super.getMap().value)]));
   }
 
   get(key: any): any {

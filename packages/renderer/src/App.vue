@@ -9,21 +9,22 @@ import IconSetting from '/@/icons/Setting.vue';
 import type {ClipFile} from '../../main/types/global';
 import {fileSize} from '../utils';
 import ConfigEdit from '/@/components/ConfigEdit.vue';
-import {userTransferHistory} from '../utils/transferHistory';
 import type {ClipConfig} from '../types/global';
+import {useReceiveHistory, useSendHistory} from '../utils/transferHistory';
 
 const active = ref('send');
 const config: ClipConfig = window.electron.store.getConfig();
-const sendMap: Map<string,any> = window.electron.store.getRecord('send');
-const receiveMap: Map<string,any> = window.electron.store.getRecord('receive');
+const sendMap = window.electron.store.getRecord('send');
+const receiveMap = window.electron.store.getRecord('receive');
 
 export interface ClipData {
   type: 'text' | 'empty' | 'file';
   content: string | ClipFile[];
 }
 
-const {map: sendList, set: sendMapSet} = userTransferHistory(config.maxSendRecord, sendMap);
-const {map: receiveList, set: receiveMapSet} = userTransferHistory(config.maxReceiveRecord, receiveMap);
+
+const {map: sendList, set: sendMapSet} = useSendHistory(config.maxSendRecord, sendMap);
+const {map: receiveList, set: receiveMapSet} = useReceiveHistory(config.maxReceiveRecord, receiveMap);
 
 const {join, send, msgList, connected, loading, remotePeerId} = usePeer(data => {
   const {date, type, name, data: content} = data;
@@ -136,7 +137,7 @@ window.electron.onClipboard((evt, {type, content}: ClipData) => {
   right: 0;
   left: 0;
   z-index: 9;
-  background-color: rgba(238, 238, 238, 0.81);
+  background-color: rgba(238, 238, 238, 0.91);
 
   .content {
     position: absolute;
@@ -147,7 +148,7 @@ window.electron.onClipboard((evt, {type, content}: ClipData) => {
     background: #eeeeee;
     overflow: hidden;
     z-index: 1;
-
+    -webkit-app-region: no-drag;
     input {
       width: 233px;
       padding: 5px;
@@ -200,8 +201,9 @@ main {
     flex-direction: column;
     border-right: 1px solid gainsboro;
     background-color: #eeeeee;
-
+    -webkit-app-region: drag;
     li {
+      -webkit-app-region: no-drag;
       padding: 6px 0 8px 0;
       cursor: pointer;
       font-size: 18px;
@@ -225,7 +227,7 @@ main {
     width: 100%;
     overflow-y: auto;
     overflow-x: hidden;
-
+    -webkit-app-region: drag;
     .title {
       font-weight: 300;
       text-align: center;

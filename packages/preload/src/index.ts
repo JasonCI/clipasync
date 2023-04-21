@@ -30,5 +30,8 @@ contextBridge.exposeInMainWorld('electron', {
     setRecord(key: 'send' | 'receive', val: any) {
       ipcRenderer.send('store-record-set', key, val);
     },
+    delRecord(val: any) {
+      ipcRenderer.send('store-record-del', val);
+    },
   },
 });

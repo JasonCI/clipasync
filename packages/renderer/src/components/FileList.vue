@@ -1,34 +1,49 @@
 <template>
   <ul class="list">
-    <li
-      v-for="[k, {name, date, type,size}] in list"
-      :key="k"
-      :class="{active: active === k}"
-      class="item"
+    <div
+      v-if="!list.size"
+      class="empty"
     >
-      <IconFile
-        v-if="type === 'file'"
-        class="icon"
-      />
-      <IconText
-        v-if="type === 'text'"
-        class="icon"
-      />
-      <div class="file">
-        <p class="name">{{ name }}</p>
-        <p class="date">
-          <span>{{ date }}</span>
-          <span v-if="type==='file'">{{ size }}</span>
-        </p>
-      </div>
-    </li>
+      <IconEmpty class="icon"></IconEmpty>
+      <p>暂无记录</p>
+    </div>
+    <template v-else>
+      <li
+        v-for="[k, {name, date, type,size,content}] in list"
+        :key="k"
+        :class="{active: active === k}"
+        class="item"
+      >
+        <IconFile
+          v-if="type === 'file'"
+          class="icon"
+        />
+        <IconText
+          v-if="type === 'text'"
+          class="icon"
+        />
+        <div class="file">
+          <p
+            class="name"
+            :title="type==='text'?content:name"
+          >
+            {{ name }}
+          </p>
+          <p class="date">
+            <span>{{ date }}</span>
+            <span v-if="type==='file'">{{ size }}</span>
+          </p>
+        </div>
+      </li>
+    </template>
   </ul>
 </template>
 
-<script lang="ts" setup="{list}">
+<script lang="ts" setup>
 import IconFile from '/@/icons/File.vue';
 import IconText from '/@/icons/Text.vue';
-import { ref} from 'vue';
+import {computed, ref} from 'vue';
+import IconEmpty from '/@/icons/Empty.vue';
 
 const props = defineProps<{
   list: Map<string, any>
@@ -45,18 +60,12 @@ const active = ref(props.list.keys()[0] || '');
 //     window.electron.setClipboard(toRaw(data));
 //   }
 // };
-// const list = computed(() => {
-//   if (!props.list.size) return props.list;
-//   // 将list按key倒序
-//   console.log([...props.list]);
-//   const res = [...props.list];
-//   res.sort((a, b) => {
-//     console.log(a[1].date);
-//     return b[1].date - a[1].date;
-//   });
-//   console.log(res);
-//   return new Map(res);
-// });
+const list = computed(() => {
+  if (!props.list.size) return props.list;
+  let res = Array.from(props.list);
+  res.reverse();
+  return new Map(res);
+});
 
 </script>
 
@@ -77,16 +86,34 @@ const active = ref(props.list.keys()[0] || '');
 ul.list {
   margin: 0;
   padding: 0;
+  -webkit-app-region: no-drag;
+  .empty {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(135, 153, 163, 0.4);
 
+    .icon {
+      width: 100px;
+      height: 100px;
+    }
+
+    p {
+      text-align: center;
+    }
+  }
 
   li.item {
     display: flex;
     padding: 6px 10px;
     border-bottom: 1px solid gainsboro;
-    .mask{
+
+    .mask {
       position: absolute;
       top: 0;
       opacity: 0;
+
       &.active {
         animation: showHide 1s;
         //border-bottom: 1px solid #8799a3;
@@ -97,6 +124,7 @@ ul.list {
     .icon {
       width: 50px;
       min-width: 50px;
+      font-size: 24px;
     }
 
     .file {

@@ -21,7 +21,7 @@ export const writeToClipboard = (data: any) => {
   if (data.type === 'file') {
     const files = data.data;
     const filePaths: string[] = [];
-    files.forEach((file:any) => {
+    files.forEach((file: any) => {
       const {data: buffer, name} = file;
       const buffers = Buffer.from(buffer, 'utf8');
       const dataPath = path.join(app.getPath('temp'), name);
@@ -43,6 +43,10 @@ const readFileStat = (p: string) => {
     fs.stat(p, (err: NodeJS.ErrnoException | null, stats: Stats) => {
       if (err) reject(err);
       const date = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
+      if (!stats || stats.isDirectory()) {
+        resolve(null);
+        return;
+      }
       if (stats.isFile()) {
         resolve({
           path: p,
@@ -51,9 +55,6 @@ const readFileStat = (p: string) => {
           name: path.basename(p),
           ext: path.extname(p),
         });
-      }
-      if (stats.isDirectory()) {
-        resolve(null);
       }
     });
   });

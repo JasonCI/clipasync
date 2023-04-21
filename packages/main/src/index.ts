@@ -44,7 +44,7 @@ app
   .whenReady()
   .then(async () => {
     const win = await restoreOrCreateWindow();
-    const ret = globalShortcut.register('CommandOrControl+Shift+V', async () => {
+    const ret = globalShortcut.register('CommandOrControl+B', async () => {
       const platform = process.platform;
       if (platform === 'darwin') {
         robot.keyTap('c', 'command');
@@ -79,14 +79,18 @@ ipcMain.on('store-config-get', async (event) => {
 });
 
 ipcMain.on('store-config-set', async (event, val) => {
-  store.setRecord('config', val);
+  store.setFile('config', JSON.stringify(val));
 });
 ipcMain.on('store-record-get', async (event, key: 'send' | 'receive') => {
   event.returnValue = store.getRecord(key);
 });
 
 ipcMain.on('store-record-set', async (event, key: 'send' | 'receive', val: any) => {
-  store.setRecord(key, val);
+  store.setFile(key, val);
+});
+
+ipcMain.on('store-record-del', async (event,  val: any) => {
+  store.delRecord(val);
 });
 app.on('will-quit', () => {
   // 注销所有快捷键

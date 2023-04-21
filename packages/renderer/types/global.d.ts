@@ -14,7 +14,8 @@ export interface IMessageAPI {
     getConfig: () => any;
     setConfig: (val: any) => void;
     getRecord: (key: 'send' | 'receive') => any;
-    setRecord: (key: 'send' | 'receive',val: any) => void;
+    setRecord: (key: 'send' | 'receive', val: any) => void;
+    delRecord: (val: any) => void;
     // any other methods you've defined...
   };
 }
@@ -25,7 +26,7 @@ export interface ClipConfig {
   onlyReceive: boolean, // 只接收
   startUpLogin: boolean//开机启动
   listenBoard: boolean // 是否监听
-  darkMode:boolean
+  darkMode: boolean
   maxSendRecord: number // 最大发送记录
   maxReceiveRecord: number
 }

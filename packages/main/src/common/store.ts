@@ -14,49 +14,60 @@ const defaults = {
 };
 
 export const store = {
-
-  getRecord(key: 'send' | 'receive'): Map<string, any> {
-    let record = [];
+  getRecord(key: 'send' | 'receive') {
+    let val: any = getFile(fPath(key));
     try {
-      const data = fs.readFileSync(this.getStateFile(`${key}MapName`));
-      record = this.parseJson(data);
-    } catch (err) {
-      record = [];
+      val = JSON.parse(val);
+      if (val) val = new Map(val);
+    } catch (e) {
+      val = new Map();
     }
-    return new Map(record);
+    return val;
   },
-  setRecord(key: 'send' | 'receive' | 'config', val: any) {
-    fs.writeFile(this.getStateFile(key), JSON.stringify(val), (err) => {
+  setFile(key: 'send' | 'receive' | 'config', val: any) {
+    fs.writeFile(fPath(key), val, (err) => {
       if (err) {
         console.error(err);
       }
     });
   },
+  delRecord(record: any) {
+    if (record.type === 'file') {
+      record.content.forEach((f:File)=>{
+        fs.unlink(f.path, (err) => {
+          if (err) {
+            console.error(err);
+          }
+        });
+      });
+
+    }
+  },
   getConfig(): ClipConfig {
-    let config = null;
+    let config:any = null;
     try {
-      config = fs.readFileSync(this.getStateFile('config'));
-      config = this.parseJson(config);
+      config = getFile(fPath('config'));
+      if (config) config = JSON.parse(config);
     } catch (err) {
       config = defaults;
     }
     return {...defaults, ...config};
   },
 
+};
 
-  getStateFile(fileName: string) {
-    const userPath = app.getPath('userData');
-    return path.join(userPath, `clipboard-sync-${fileName}.json`);
-  },
+const getFile = (path: string) => {
+  let file = null;
+  try {
+    file = fs.readFileSync(path);
+  } catch (err) {
+    file = null;
+  }
+  return file;
+};
 
-  parseJson(str: string): ClipConfig {
-    let json = null;
-    try {
-      json = JSON.parse(str);
-    } catch (err) {
-      json = defaults;
-    }
-
-    return json;
-  },
+const fPath = (key: string) => {
+  const userPath = app.getPath('userData');
+  console.log(userPath);
+  return path.join(userPath, `clipboard-sync-${key}.json`);
 };
