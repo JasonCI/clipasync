@@ -53,5 +53,6 @@ watch(setting, (newVal) => {
 .form {
   width: 300px;
   margin: 30px auto;
+  -webkit-app-region: no-drag;
 }
 </style>

@@ -42,7 +42,7 @@
 <script lang="ts" setup>
 import IconFile from '/@/icons/File.vue';
 import IconText from '/@/icons/Text.vue';
-import {computed, ref} from 'vue';
+import {computed, ref, watch} from 'vue';
 import IconEmpty from '/@/icons/Empty.vue';
 
 const props = defineProps<{
@@ -50,6 +50,9 @@ const props = defineProps<{
   // type: string,
 }>();
 
+watch(props.list,()=>{
+  document.querySelector('ul.list').scrollTo(0,0);
+});
 
 const active = ref(props.list.keys()[0] || '');
 // const check = (key) => {

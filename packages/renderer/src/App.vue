@@ -27,7 +27,7 @@ const {map: sendList, set: sendMapSet} = useSendHistory(config.maxSendRecord, se
 const {map: receiveList, set: receiveMapSet} = useReceiveHistory(config.maxReceiveRecord, receiveMap);
 
 const {join, send, msgList, connected, loading, remotePeerId} = usePeer(data => {
-  const {date, type, name, data: content} = data;
+  const {date, type, name, content} = data;
   if (data.type === 'file') {
     receiveMapSet(name, {type, name, date, content});
   }

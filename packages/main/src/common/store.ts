@@ -34,6 +34,7 @@ export const store = {
   delRecord(record: any) {
     if (record.type === 'file') {
       record.content.forEach((f:File)=>{
+        console.log(f.path);
         fs.unlink(f.path, (err) => {
           if (err) {
             console.error(err);
