@@ -137,8 +137,8 @@ window.electron.onClipboard((evt, {type, content}: ClipData) => {
   right: 0;
   left: 0;
   z-index: 9;
-  background-color: rgba(238, 238, 238, 0.91);
-
+  background-color: rgba(238, 238, 238, 0.94);
+  -webkit-app-region: drag;
   .content {
     position: absolute;
     left: 50%;

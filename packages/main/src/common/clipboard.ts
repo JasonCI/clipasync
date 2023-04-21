@@ -15,11 +15,12 @@ export const getFiles = async (stats: ClipFile[]) => {
 };
 
 export const writeToClipboard = (data: any) => {
+  console.log({ data});
   if (data.type === 'text') {
-    clipboard.writeText(data.data);
+    clipboard.writeText(data.content);
   }
   if (data.type === 'file') {
-    const files = data.data;
+    const files = data.content;
     const filePaths: string[] = [];
     files.forEach((file: any) => {
       const {data: buffer, name} = file;

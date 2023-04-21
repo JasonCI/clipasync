@@ -108,9 +108,9 @@ export const usePeer = (receive: (data: any) => void) => {
     });
 
     connection.on('data', data => {
-      console.log(`收到数据: ${data}`);
+      console.log('收到数据',data);
       receive(data);
-      connection.send({data: 1, id: peerId});
+      // connection.send({data: 'ok', id: peerId});
     });
     connection.on('close', () => {
       console.log(`连接 ${connection.peer} 已关闭.`);
