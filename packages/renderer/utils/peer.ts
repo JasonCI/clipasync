@@ -78,8 +78,8 @@ export const usePeer = (receive: (data: any) => void) => {
   let hostConnection: DataConnection;
   const IDPREFIX = '';
   const peer = new Peer(`${IDPREFIX}${peerId}`, {
-    // host: 'peer.zeabur.app',
-    // port: 443,
+    host: 'peer.zeabur.app',
+    port: 443,
   });
   peer.on('open', id => {
     msgList.value.push(`已与中继服务器建立连接. 分配Id:${id}`);
